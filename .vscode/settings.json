@@ -1,0 +1,10 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/home/axallain/Documents/SE/nachos",
+            "binaryPath": "/home/axallain/Documents/SE/nachos/nachos",
+            "binaryArgs": []
+        }
+    ]
+}
