@@ -24,6 +24,10 @@ int
 main()
 {
   n_printf("** ** ** Bonjour le monde ** ** **\n");
+  int idSem = SemCreate("sem1", 1);
+  n_printf("Semaphore created with id %d\n", idSem);
+  V(idSem);
+  P(idSem);
 
   return 0;
 }

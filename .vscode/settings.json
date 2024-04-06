@@ -6,5 +6,8 @@
             "binaryPath": "/home/axallain/Documents/SE/nachos/nachos",
             "binaryArgs": []
         }
-    ]
+    ],
+    "files.associations": {
+        "new": "cpp"
+    }
 }

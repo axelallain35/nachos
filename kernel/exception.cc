@@ -124,49 +124,139 @@ void ExceptionHandler(ExceptionType exceptiontype, int vaddr)
 	char msg[MAXSTRLEN]; // Argument for the PError system call
 
     //Sémaphore
-    case SC_P:
+    case SC_P:{
       DEBUG('e', (char*)"Semaphore P().\n");
-      ((Semaphore*)vaddr)->P();
-      break;
+      int64_t id = g_machine->ReadIntRegister(10);
+      Semaphore *sem = (Semaphore*)g_object_addrs->SearchObject(id);
+      ASSERT(sem->type == ObjectType::SEMAPHORE_TYPE);
+      sem->P();
       
-    case SC_V:
+      break;
+    }
+      
+    case SC_V: {
       DEBUG('e', (char*)"Semaphore V().\n");
-      ((Semaphore*)vaddr)->V();
+      int64_t id = g_machine->ReadIntRegister(10);
+      Semaphore *sem = (Semaphore*)g_object_addrs->SearchObject(id);
+      ASSERT(sem->type == ObjectType::SEMAPHORE_TYPE);
+      sem->V();
       break;
+    }
 
-    case SC_SEM_CREATE:
+    case SC_SEM_CREATE: {
       DEBUG('e', (char*)"Semaphore create.\n");
-      //vaddr = new Semaphore(g_machine->ReadStringRegister(10), g_machine->ReadIntRegister(11));
-      break;
 
-    case SC_SEM_DESTROY:
+      // Name of Semaphore
+      int nameId = g_machine->ReadIntRegister(10);
+      int len = GetLengthParam(nameId);
+      char* name = new char[len];
+      GetStringParam(nameId, name, len);
+      
+      // Count of Semaphore
+      int count = g_machine->ReadIntRegister(11);
+
+      // Creating Semaphore
+      Semaphore *sem = new Semaphore(name,count);
+      int32_t add_object = g_object_addrs->AddObject(sem);
+      g_machine->WriteIntRegister(10,add_object);
+      break;
+    }
+
+    case SC_SEM_DESTROY: {
       DEBUG('e', (char*)"Semaphore destroy.\n");
-      delete (Semaphore*)vaddr;
+      int64_t id = g_machine->ReadIntRegister(10);
+      Semaphore *sem = (Semaphore*)g_object_addrs->SearchObject(id);
+      g_object_addrs->RemoveObject(id);
+      delete sem;
       break;
+    }
 
-    case SC_LOCK_CREATE:
+    case SC_LOCK_CREATE:{
       DEBUG('e', (char*)"Lock create.\n");
-      //vaddr = new Lock(g_machine->ReadStringRegister(10));
-      break;
+      int nameId = g_machine->ReadIntRegister(10);
+      char* name = new char[GetLengthParam(nameAddr)];
+      GetStringParam(nameAddr, name, GetLengthParam(nameAddr));
 
-    case SC_LOCK_DESTROY:
+      Lock* lock = new Lock(name);
+      int id  = g_object_addrs->AddObject(lock);
+      g_machine->WriteIntRegister(10, id);
+      break;
+    }
+
+    case SC_LOCK_DESTROY{
       DEBUG('e', (char*)"Lock destroy.\n");
-      delete (Lock*)vaddr;
+      int64_t id = g_machine->ReadIntRegister(10);
+      Lock* lock = (Lock*)g_object_addrs->SearchObject(id);
+      g_object_addrs->RemoveObject(id);
+      delete lock;
       break;
+    }
 
-    case SC_LOCK_ACQUIRE:
+    case SC_LOCK_ACQUIRE: {
+      DEBUG('e', (char*)"Lock acquire.\n");
+      int64_t id = g_machine->ReadIntRegister(10);
+      Lock* lock = (Lock*)g_object_addrs->SearchObject(id);
+      ASSERT(lock->type == ObjectType::LOCK_TYPE);
+      lock->Acquire();
+      break;
+    }
 
-    case SC_LOCK_RELEASE:
+    case SC_LOCK_RELEASE: {
+      DEBUG('e', (char*)"Lock release.\n");
+      int64_t id = g_machine->ReadIntRegister(10);
+      Lock* lock = (Lock*)g_object_addrs->SearchObject(id);
+      ASSERT(lock->type == ObjectType::LOCK_TYPE);
+      lock->Release();
+      break;
+    }
 
-    case SC_COND_CREATE:
+    case SC_COND_CREATE: {
+      DEBUG('e', (char*)"Condition create.\n");
+      int nameId = g_machine->ReadIntRegister(10);
+      char* name = new char[GetLengthParam(nameAddr)];
+      GetStringParam(nameAddr, name, GetLengthParam(nameAddr));
 
-    case SC_COND_DESTROY:
+      Condition* cond = new Condition(name);
+      int id  = g_object_addrs->AddObject(cond);
+      g_machine->WriteIntRegister(10, id);
+      break;
+    }
 
-    case SC_COND_WAIT:
+    case SC_COND_DESTROY: {
+      DEBUG('e', (char*)"Condition destroy.\n");
+      int64_t id = g_machine->ReadIntRegister(10);
+      Condition* cond = (Condition*)g_object_addrs->SearchObject(id);
+      g_object_addrs->RemoveObject(id);
+      delete cond;
+      break;
+    }
 
-    case SC_COND_SIGNAL:
+    case SC_COND_WAIT: {
+      DEBUG('e', (char*)"Condition wait.\n");
+      int64_t id = g_machine->ReadIntRegister(10);
+      Condition* cond = (Condition*)g_object_addrs->SearchObject(id);
+      ASSERT(cond->type == ObjectType::CONDITION_TYPE);
+      cond->Wait();
+      break;
+    }
 
-    case SC_COND_BROADCAST:
+    case SC_COND_SIGNAL: {
+      DEBUG('e', (char*)"Condition signal.\n");
+      int64_t id = g_machine->ReadIntRegister(10);
+      Condition* cond = (Condition*)g_object_addrs->SearchObject(id);
+      ASSERT(cond->type == ObjectType::CONDITION_TYPE);
+      cond->Signal();
+      break;
+    }
+
+    case SC_COND_BROADCAST: {
+      DEBUG('e', (char*)"Condition broadcast.\n");
+      int64_t id = g_machine->ReadIntRegister(10);
+      Condition* cond = (Condition*)g_object_addrs->SearchObject(id);
+      ASSERT(cond->type == ObjectType::CONDITION_TYPE);
+      cond->Broadcast();
+      break;
+    }
 
     case SC_HALT: 
       // The halt system call. Stops Nachos.
